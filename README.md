@@ -9,5 +9,5 @@ Proyecto para la materia AWS cloud academy foundations
 ## Instalar dependencias/librerias
     pip install -r requirements.txt 
 ## Correr uvicorn
-    uvicorn main:app --reload
+    uvicorn main:app --port 8080
 
