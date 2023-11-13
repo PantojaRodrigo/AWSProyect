@@ -1,20 +1,17 @@
-from api.models.alumno import Alumno
-from api.models.profesor import Profesor
-
 
 class Repository():
     elementos = []
           
-    def add_element(self,element:Alumno|Profesor):
+    def add_element(self,element):
         if self.get_element_by_id(element.id) is None: 
             self.elementos.append(element)
             return element.id
         return None
         
-    def get_element_by_id(self, id:int)->(Alumno|Profesor|None):
+    def get_element_by_id(self, id:int):
         return next(filter(lambda element: element.id == id,  self.elementos), None)
     
-    def update_element(self,id:int,new_element:Alumno|Profesor):
+    def update_element(self,id:int,new_element):
         element = self.get_element_by_id(id) 
         if element is not None and element.id==new_element.id:
             self.elementos.remove(element)
