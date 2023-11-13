@@ -3,7 +3,7 @@ from api.models.profesor import Profesor
 
 
 class Repository():
-    elementos :list[Alumno|Profesor]= []
+    elementos = []
           
     def add_element(self,element:Alumno|Profesor):
         if self.get_element_by_id(element.id) is None: 
