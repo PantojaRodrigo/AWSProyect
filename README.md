@@ -10,4 +10,6 @@ Proyecto para la materia AWS cloud academy foundations
     pip install -r requirements.txt 
 ## Correr uvicorn
     uvicorn main:app --port 8080
+## Correr uvicorn en AWS:
+    nohup uvicorn main:app --port 8080 &
 
