@@ -20,7 +20,6 @@ def get_all_alumnos():
 @alumnos_router.get("/{id}")
 def get_alumno_by_id(id: int):
     alumno = alumnosRepo.get_element_by_id(id)
-    print(alumno)
     if alumno is None:
         return JSONResponse({"message": "No alumno found"}, status_code=status.HTTP_404_NOT_FOUND)
     return alumno
