@@ -1,3 +1,4 @@
+from dbconnection import Base, engine
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -6,6 +7,8 @@ from api.routers.profesores import profesores_router
 
 app =  FastAPI()
 app.title = "AWSProyect"
+
+Base.metadata.create_all(engine)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
