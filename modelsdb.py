@@ -13,6 +13,10 @@ class Alumnos(Base):
     password : Mapped[str] = mapped_column(String(128))
     fotoPerfilUrl : Mapped[Optional[str]] = mapped_column(String(128))
     
+    def as_dict(self):
+           return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+   
 class Profesores(Base):
     __tablename__ = "profesores"
     id : Mapped[int] = mapped_column(primary_key=True)
@@ -20,3 +24,4 @@ class Profesores(Base):
     apellidos : Mapped[str] = mapped_column(String(128))
     numeroEmpleado : Mapped[int] = mapped_column(Integer,unique=True)
     horasClase : Mapped[int] = mapped_column(Integer)
+

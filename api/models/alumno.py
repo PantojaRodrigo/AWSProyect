@@ -6,3 +6,9 @@ class AlumnoRequest(BaseModel):
     matricula: str
     promedio: float
     password: str    
+    
+class LoginRequest(BaseModel):
+    password: str    
+    
+class SessionValidation(BaseModel):
+    sessionString: str  
