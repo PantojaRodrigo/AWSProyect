@@ -6,7 +6,7 @@ from fastapi import APIRouter,status,Depends, File, UploadFile
 from fastapi.responses import JSONResponse
 from api.models.alumno import AlumnoRequest, LoginRequest, SessionValidation
 from modelsdb import Alumnos
-from awsconfig import s3_client, dynamo_client
+from awsconfig import s3_client, dynamo_table, sns_topic
 from boto3.dynamodb.conditions import Attr
 import uuid, random,string, traceback, datetime,time, json
 
@@ -87,6 +87,7 @@ def upload_profile_picture(id: int,file: UploadFile, db: db_dependency):
         file.file.close()
     JSONResponse({"filename": str(file.filename)}, status_code=status.HTTP_200_OK)
 
+#Session
 @alumnos_router.post("/{id}/session/login")
 def create_session(id: int, loginRequest:LoginRequest ,db: db_dependency):
     alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
@@ -128,8 +129,7 @@ def delete_session(id: int,sessionVal :SessionValidation, db: db_dependency):
     alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
     if alumno_model is None:
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
-    session_table = dynamo_client.Table("sesiones-alumnos")
-    response = session_table.scan(
+    response = dynamo_table.scan(
         FilterExpression=Attr('alumnoId').eq(alumno_model.id) 
         & Attr('sessionString').eq(sessionVal.sessionString)
         & Attr('active').eq(True)
@@ -138,5 +138,14 @@ def delete_session(id: int,sessionVal :SessionValidation, db: db_dependency):
         return  JSONResponse({"message": "No se encontro una session activa"}, status_code=status.HTTP_400_BAD_REQUEST)
     item = response["Items"][0]
     item["active"]=False
-    session_table.put_item(Item=item) 
+    dynamo_table.put_item(Item=item) 
 
+@alumnos_router.post("/{id}/email")
+def send_sns(id: int,db: db_dependency):
+    alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
+    if alumno_model is None:
+        return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
+    message = f"Las calificaciones del alumno \n{alumno_model.nombres} {alumno_model.apellidos} \n\
+          es de {alumno_model.promedio}"
+    print(message)
+    sns_topic.publish(Message = message)
