@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 
 class AlumnoRequest(BaseModel):
@@ -11,4 +12,4 @@ class LoginRequest(BaseModel):
     password: str    
     
 class SessionValidation(BaseModel):
-    sessionString: str  
+    sessionString: str 

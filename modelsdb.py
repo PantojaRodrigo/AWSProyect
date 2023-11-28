@@ -24,4 +24,6 @@ class Profesores(Base):
     apellidos : Mapped[str] = mapped_column(String(128))
     numeroEmpleado : Mapped[int] = mapped_column(Integer,unique=True)
     horasClase : Mapped[int] = mapped_column(Integer)
-
+    
+    def as_dict(self):
+           return {c.name: getattr(self, c.name) for c in self.__table__.columns}

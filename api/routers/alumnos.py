@@ -66,53 +66,60 @@ def delete_alumno(id: int,db: db_dependency):
     db.commit()
     
 @alumnos_router.post("/{id}/fotoPerfil")
-def upload_profile_picture(id: int,file: UploadFile, db: db_dependency):
+def upload_profile_picture(id: int,foto: UploadFile, db: db_dependency):
     try:
-        ext = file.content_type.split("/")
-        if ext[0] != "image":
-            return JSONResponse({"message": "No es una imagen "}, status_code=status.HTTP_400_BAD_REQUEST)
+        ext = foto.content_type.split("/")
+        
+        ''' if ext[0] != "image":
+            print("Error imagen"+ str(ext))
+            return JSONResponse({"message": "No es una imagen "}, status_code=status.HTTP_400_BAD_REQUEST) '''
+        content_type = foto.content_type if ext[0]=="image" else "image/jpg"
         # Upload the file to to your S3 service
-        filename=str(uuid.uuid4())+"."+ext[1]
-        s3_client.upload_fileobj(file.file, 'aws-proyecto-bucket',filename,ExtraArgs={"ContentType":str(file.content_type)})
+        filename=str(uuid.uuid4())+"."+content_type.split("/")[1]
+        
+        s3_client.upload_fileobj(foto.file, 'aws-proyecto-bucket',filename,ExtraArgs={"ContentType":content_type})
         
         alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
         alumno_model.fotoPerfilUrl = "https://aws-proyecto-bucket.s3.amazonaws.com/" + str(filename)
         db.add(alumno_model)
         db.commit()
-        
     except Exception as ex:
         traceback.print_exc()
         return JSONResponse({"message": "Error al subir imagen"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     finally:
-        file.file.close()
-    JSONResponse({"filename": str(file.filename)}, status_code=status.HTTP_200_OK)
+        foto.file.close()
+    return JSONResponse({"fotoPerfilUrl": alumno_model.fotoPerfilUrl}, status_code=status.HTTP_200_OK)
+    
+    
 
 #Session
 @alumnos_router.post("/{id}/session/login")
 def create_session(id: int, loginRequest:LoginRequest ,db: db_dependency):
     alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
+    print("recieved password:"+loginRequest.password)
     if alumno_model is None:
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
     if loginRequest.password != alumno_model.password:
         return JSONResponse({"message": "Contraseña invalida"}, status_code=status.HTTP_400_BAD_REQUEST)
-    session_table = dynamo_client.Table("sesiones-alumnos")
-    response = session_table.put_item(
+    session_string = generateSession()
+    response = dynamo_table.put_item(
         Item={
                 'id': str(uuid.uuid4()),
                 'fecha': int(time.mktime(datetime.datetime.now().timetuple())),
                 'alumnoId': alumno_model.id,
                 'active': True,
-                'sessionString': generateSession(),
+                'sessionString': session_string,
             }
     )
+    return {"sessionString": session_string}
+
 
 @alumnos_router.post("/{id}/session/verify")
 def verify_session(id: int,sessionVal :SessionValidation, db: db_dependency):
     alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
     if alumno_model is None:
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
-    session_table = dynamo_client.Table("sesiones-alumnos")
-    response = session_table.scan(
+    response = dynamo_table.scan(
         FilterExpression=Attr('alumnoId').eq(alumno_model.id) 
         & Attr('sessionString').eq(sessionVal.sessionString)
         & Attr('active').eq(True)

@@ -37,6 +37,7 @@ def add_profesor(profesor:ProfesorRequest,db: db_dependency):
     
     db.add(profesor_model)
     db.commit()
+    return JSONResponse(profesor_model.as_dict(), status_code=status.HTTP_201_CREATED)
         
 @profesores_router.put("/{id}")
 def update_profesor(id: int,profesor:ProfesorRequest,db: db_dependency):
