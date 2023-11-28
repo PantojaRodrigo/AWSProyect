@@ -154,5 +154,4 @@ def send_sns(id: int,db: db_dependency):
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
     message = f"Las calificaciones del alumno \n{alumno_model.nombres} {alumno_model.apellidos} \n\
           es de {alumno_model.promedio}"
-    print(message)
     sns_topic.publish(Message = message)
