@@ -96,7 +96,6 @@ def upload_profile_picture(id: int,foto: UploadFile, db: db_dependency):
 @alumnos_router.post("/{id}/session/login")
 def create_session(id: int, loginRequest:LoginRequest ,db: db_dependency):
     alumno_model = db.query(Alumnos).filter(Alumnos.id==id).first()
-    print("recieved password:"+loginRequest.password)
     if alumno_model is None:
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
     if loginRequest.password != alumno_model.password:
@@ -154,5 +153,4 @@ def send_sns(id: int,db: db_dependency):
         return JSONResponse({"message": "No se encontro al alumno"}, status_code=status.HTTP_404_NOT_FOUND)
     message = f"Las calificaciones del alumno \n{alumno_model.nombres} {alumno_model.apellidos} \n\
           es de {alumno_model.promedio}"
-    print(message)
     sns_topic.publish(Message = message)
